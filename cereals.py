@@ -90,13 +90,22 @@ principalComponents = pca.fit_transform(cereals_scale)
 pca_cereals = pd.DataFrame(principalComponents)
 # "Multivariate Analysis" by Hair et al (2012) 60percent Medical 95%
 pca.explained_variance_ratio_
-
+per_var = pca.explained_variance_ratio_
 
 plt.plot(pca.explained_variance_ratio_)
 plt.show()
 for i in range(20):
     a=sum(pca.explained_variance_ratio_[:i])
     print(a) #8 principal components
+
+#Scree Plot
+labels = ['PC' + str(x) for x in range(1, len(per_var) + 1)]
+plt.bar(x=range(1, len(per_var)+1), height=per_var, tick_label=labels, color = "green" )
+plt.ylabel('Percentange of explained variance')
+plt.xlabel('Principal component')
+plt.title('Scree plot')
+plt.show()
+plt.savefig("Screeplot.png")
 
 
 loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
