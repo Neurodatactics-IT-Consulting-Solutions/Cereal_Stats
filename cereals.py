@@ -59,10 +59,12 @@ cereal.drop(axis=0, index=[0,2,3], inplace=True) #eliminate these guys
 cereal_num = cereal.drop(["name","mfr","vitamins","shelf"], axis=1)
 
 corr = cereal_num.corr()
-sns.heatmap(corr,annot = True)
-plt.show()
-
-
+mask = np.zeros(corr.shape, dtype=bool)
+mask[np.triu_indices(len(mask))] = True
+fig, ax = plt.subplots(figsize=(7,7))
+sns.heatmap(corr, cmap = "Greens_r", annot = False, mask = mask,vmin = -1, vmax = 1,ax=ax,
+            cbar_kws={'label': 'Correlation'})
+plt.savefig("Correlation.png")
 #Standardize through ZSCORE
 
 scaler = StandardScaler()
