@@ -9,7 +9,9 @@ from sklearn.metrics import silhouette_samples
 from sklearn.metrics import silhouette_score
 import patsy
 import statsmodels.api as sm
-
+import pylab as py
+import plotly.graph_objects as go
+from plotly.offline import plot
 cereal = pd.read_csv("https://raw.githubusercontent.com/pedromcsantos/Cereal_Stats/master/cereal.csv")
 
 
@@ -58,13 +60,16 @@ cereal.drop(axis=0, index=[0,2,3], inplace=True) #eliminate these guys
 
 cereal_num = cereal.drop(["name","mfr","vitamins","shelf"], axis=1)
 
+#Correlation Heatmap
 corr = cereal_num.corr()
 mask = np.zeros(corr.shape, dtype=bool)
 mask[np.triu_indices(len(mask))] = True
 fig, ax = plt.subplots(figsize=(7,7))
 sns.heatmap(corr, cmap = "Greens_r", annot = False, mask = mask,vmin = -1, vmax = 1,ax=ax,
             cbar_kws={'label': 'Correlation'})
-plt.savefig("Correlation.png")
+#plt.savefig("Correlation.png")
+
+
 #Standardize through ZSCORE
 
 scaler = StandardScaler()
@@ -75,7 +80,8 @@ cereals_scale[cereals_scale.columns] = scaler.fit_transform(cereals_scale[cereal
 
 #Plot QQ PLOT Normalized vs QQ PLOT not Normalized
 #https://www.statsmodels.org/stable/generated/statsmodels.graphics.gofplots.qqplot.html
-
+sm.qqplot(cereals_scale, line ='45') #which dataframe? One variable or all?
+py.show() 
 
 ################ PCA ################
 
@@ -107,12 +113,42 @@ plt.ylabel('Percentange of explained variance')
 plt.xlabel('Principal component')
 plt.title('Scree plot')
 plt.show()
-plt.savefig("Screeplot.png")
+#plt.savefig("Screeplot.png")
 
 
 loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
 loadings = pd.DataFrame(loadings[:5], columns = cereals_scale.columns.values)
+loadings = loadings.round(3)
 #If values above 0.5, means it has a strong correlation
+
+#plot loadings
+values = [loadings.columns, loadings.iloc[0,:],loadings.iloc[1,:],loadings.iloc[2,:],loadings.iloc[3,:]]#4 PC's
+
+fig = go.Figure(data=[go.Table(
+  columnwidth = [5],
+  header = dict(
+    values = [['<b>Variables'],['<b>PC1'],['<b>PC2'],['<b>PC3'],
+                  ['<b>PC4</b>']], 
+    line_color='darkslategray',
+    fill_color='royalblue',
+    align=['left','center'],
+    font=dict(color='white', size=12),
+    height=30
+  ),
+  cells=dict(
+    values=values,
+    line_color='darkslategray',
+    fill=dict(color=['paleturquoise', 'white']),
+    align=['left', 'center'],
+    font_size=12,
+    height=30,
+   )
+    )
+])
+plot(fig)
+
+
+
 
 #matrix where corr is at least 0.5 in 1 component
 
