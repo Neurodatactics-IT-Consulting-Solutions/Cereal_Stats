@@ -10,7 +10,7 @@ from sklearn.metrics import silhouette_score
 import patsy
 import statsmodels.api as sm
 
-cereal = pd.read_csv("C:\\Users\\pedro\\Desktop\\Slides\\Stats\\Stats proj\\cereal.csv")
+cereal = pd.read_csv("https://raw.githubusercontent.com/pedromcsantos/Cereal_Stats/master/cereal.csv")
 
 
 ################ DATA EXPLORATION ################
@@ -52,7 +52,7 @@ cereal["potass"][cereal["potass"]<0] = cereal["potass"][cereal["potass"]>=0].mea
 cereal.drop("type", inplace = True, axis = 1)
 
 
-cereal.drop(axis=0, index=[0,2,3], inplace=True)
+cereal.drop(axis=0, index=[0,2,3], inplace=True) #eliminate these guys 
 
 #Drop categorical variables for standardization: Name,  Manufacturer , vitamins, shelf
 
