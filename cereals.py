@@ -117,11 +117,18 @@ plt.show()
 
 
 loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
-loadings = pd.DataFrame(loadings[:5], columns = cereals_scale.columns.values)
+loadings = pd.DataFrame(loadings[:4], columns = cereals_scale.columns.values)
 loadings = loadings.round(3)
+#loadings.to_excel("loadings.xlsx")
+
+#transpose loadings for better reading
+loadings_trans = loadings.transpose()
 #If values above 0.5, means it has a strong correlation
 
-#plot loadings
+#Plot loadings heatmap
+sns.heatmap(loadings_trans,cmap = "Greens_r", annot = True)
+
+#plot loadings table
 values = [loadings.columns, loadings.iloc[0,:],loadings.iloc[1,:],loadings.iloc[2,:],loadings.iloc[3,:]]#4 PC's
 
 fig = go.Figure(data=[go.Table(
@@ -145,10 +152,7 @@ fig = go.Figure(data=[go.Table(
    )
     )
 ])
-plot(fig)
-
-
-
+#plot(fig)
 
 #matrix where corr is at least 0.5 in 1 component
 
