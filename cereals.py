@@ -73,6 +73,8 @@ sns.heatmap(corr, cmap = "Greens_r", annot = False, mask = mask,vmin = -1, vmax 
 
 #Standardize through ZSCORE
 
+cereal.reset_index(drop=True, inplace=True)
+
 scaler = StandardScaler()
 cereals_scale = cereal_num.copy()
 cereals_scale[cereals_scale.columns] = scaler.fit_transform(cereals_scale[cereals_scale.columns])
@@ -97,7 +99,8 @@ py.show()
 #interpreted as an axis of the ellipsoid fitted to the data. 
 
 #SKLEARN centers the data but doesnt standardize.
-
+cereals_scale2 = cereals_scale.copy()
+cereals_scale.drop("rating",axis=1, inplace=True) #drop target Y
 pca = PCA(n_components= cereals_scale.shape[1])
 principalComponents = pca.fit_transform(cereals_scale)
 pca_cereals = pd.DataFrame(principalComponents)
@@ -141,7 +144,7 @@ loadings_5 = loadings[(loadings >= 0.5) | (loadings <= -0.5)].dropna(axis=1, how
 
 cereals_clusters = []
 for i in range(1,10):
-    kmeans = KMeans(n_clusters=i, init='random', random_state=1).fit(cereals_scale)
+    kmeans = KMeans(n_clusters=i, init='random', random_state=1).fit(cereals_scale2)
     cereals_clusters.append(kmeans.inertia_)
     print(i) #check what iteration we are in
 
@@ -149,25 +152,25 @@ for i in range(1,10):
 plt.plot(range(1,10), cereals_clusters)	
 plt.show()
 
-kmeans= KMeans(n_clusters=3, init='random', random_state=1).fit(cereals_scale)
+kmeans= KMeans(n_clusters=3, init='random', random_state=1).fit(cereals_scale2)
 ###3/6 clusters seem to have the best result.
 # Inverse Normalization for Interpretation
 cluster_centroids_num = pd.DataFrame(scaler.inverse_transform(X = kmeans.cluster_centers_))
-cluster_centroids_num.columns = cereals_scale.columns
+cluster_centroids_num.columns = cereals_scale2.columns
 
 
-cereal["cluster"] = kmeans.predict(X=cereals_scale)
+cereal["cluster"] = kmeans.predict(X=cereals_scale2)
 cereal.cluster.value_counts()
 
 #COMPUTE THE SILHOUTTE
 
 n_clusters=3
-silhouette_avg = silhouette_score(cereals_scale, kmeans.labels_)
+silhouette_avg = silhouette_score(cereals_scale2, kmeans.labels_)
 print("For n_clusters =", n_clusters,
           "The average silhouette_score is :", silhouette_avg)
 
 # Compute the silhouette scores for each sample
-sample_silhouette_values = silhouette_samples(cereals_scale, kmeans.labels_)
+sample_silhouette_values = silhouette_samples(cereals_scale2, kmeans.labels_)
 
 cluster_labels = kmeans.labels_
 
@@ -205,13 +208,14 @@ for i in range(n_clusters):
 #y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass+C(vitamins)+C(shelf)+cups+C(mfr)+C(cluster)",cereal)
 y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass",cereal) 
 
-test = pca_cereals.copy()
+pca_regression = pca_cereals.copy()
 
+pca_regression.rename({0:"PC1",1:"PC2",2:"PC3", 3:"PC4"},axis=1, inplace = True)
 
-x = test.reset_index(drop=True)
-y = cereal["rating"].reset_index(drop=True)
+pca_regression["rating"] = cereal["rating"]
 
-y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass",test) 
+y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass",cereal) 
+y, x = patsy.dmatrices("rating~PC1+PC2+PC3+PC4",pca_regression) 
 
 
 model= sm.OLS(y,x).fit()
@@ -223,8 +227,8 @@ plt.scatter(x= cereal.cups , y= cereal.calories)
 plt.scatter(x= cereal.fiber , y= cereal.rating)
 plt.scatter(x= cereal.protein , y= cereal.rating)
 
-plt.scatter(x=test.iloc[:,0], y = cereal.rating) 
-
+plt.scatter(x=pca_regression.iloc[:,0], y = pca_regression.rating) 
+    
 plt.hist(cereal["rating"]) #somewhat right skewed distribution
 plt.axvline(cereal.rating.mean(), c = "black")
 plt.show()
