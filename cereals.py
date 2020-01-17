@@ -81,8 +81,12 @@ cereals_scale[cereals_scale.columns] = scaler.fit_transform(cereals_scale[cereal
 
 #Plot QQ PLOT Normalized vs QQ PLOT not Normalized
 #https://www.statsmodels.org/stable/generated/statsmodels.graphics.gofplots.qqplot.html
-sm.qqplot(cereals_scale, line ='45') #which dataframe? One variable or all?
+sm.qqplot(cereal["rating"],line="s") #which dataframe? One variable or all?
 py.show() 
+
+sm.qqplot(cereals_scale["potass"],line="s") #which dataframe? One variable or all?
+py.show()
+
 
 ################ PCA ################
 
@@ -120,40 +124,11 @@ plt.show()
 loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
 loadings = pd.DataFrame(loadings, index= cereals_scale.columns.values)
 loadings = loadings.round(3)
-#loadings.to_excel("loadings.xlsx")
+
 
 #transpose loadings for better reading
 loadings_trans = loadings.transpose()
 #If values above 0.5 means it has a strong correlation
-
-#Plot loadings heatmap
-sns.heatmap(loadings_trans,cmap = "Greens_r", annot = True)
-
-#plot loadings table
-values = [loadings.columns, loadings.iloc[0,:],loadings.iloc[1,:],loadings.iloc[2,:],loadings.iloc[3,:]]#4 PC's
-
-fig = go.Figure(data=[go.Table(
-  columnwidth = [5],
-  header = dict(
-    values = [['<b>Variables'],['<b>PC1'],['<b>PC2'],['<b>PC3'],
-                  ['<b>PC4</b>']], 
-    line_color='darkslategray',
-    fill_color='royalblue',
-    align=['left','center'],
-    font=dict(color='white', size=12),
-    height=30
-  ),
-  cells=dict(
-    values=values,
-    line_color='darkslategray',
-    fill=dict(color=['paleturquoise', 'white']),
-    align=['left', 'center'],
-    font_size=12,
-    height=30,
-   )
-    )
-])
-#plot(fig)
 
 #matrix where corr is at least 0.5 in 1 component
 
