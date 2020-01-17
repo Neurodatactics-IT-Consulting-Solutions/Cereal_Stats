@@ -60,6 +60,7 @@ cereal.drop(axis=0, index=[0,2,3], inplace=True) #eliminate these guys
 
 cereal_num = cereal.drop(["name","mfr","vitamins","shelf"], axis=1)
 
+
 #Correlation Heatmap
 corr = cereal_num.corr()
 mask = np.zeros(corr.shape, dtype=bool)
@@ -117,13 +118,13 @@ plt.show()
 
 
 loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
-loadings = pd.DataFrame(loadings[:4], columns = cereals_scale.columns.values)
+loadings = pd.DataFrame(loadings, index= cereals_scale.columns.values)
 loadings = loadings.round(3)
 #loadings.to_excel("loadings.xlsx")
 
 #transpose loadings for better reading
 loadings_trans = loadings.transpose()
-#If values above 0.5, means it has a strong correlation
+#If values above 0.5 means it has a strong correlation
 
 #Plot loadings heatmap
 sns.heatmap(loadings_trans,cmap = "Greens_r", annot = True)
@@ -229,15 +230,25 @@ for i in range(n_clusters):
 #y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass+C(vitamins)+C(shelf)+cups+C(mfr)+C(cluster)",cereal)
 y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass",cereal) 
 
+test = pca_cereals.copy()
+
+
+x = test.reset_index(drop=True)
+y = cereal["rating"].reset_index(drop=True)
+
+y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass",test) 
+
+
 model= sm.OLS(y,x).fit()
 print(model.summary())  #good model with good fit where fiber seems to increase the rating the most while fat decreases, cp.
 
 plt.scatter(x=cereal.sugars, y = cereal.rating) #the more the sugar, the lower the rating
 plt.scatter(x=cereal.fat, y = cereal.rating)  #the more the sugar, the lower the rating
 plt.scatter(x= cereal.cups , y= cereal.calories)
-plt.scatter(x= cereal.cups , y= cereal.rating)
-plt.scatter(x= cereal.vitamins , y= cereal.rating)
+plt.scatter(x= cereal.fiber , y= cereal.rating)
+plt.scatter(x= cereal.protein , y= cereal.rating)
 
+plt.scatter(x=test.iloc[:,0], y = cereal.rating) 
 
 plt.hist(cereal["rating"]) #somewhat right skewed distribution
 plt.axvline(cereal.rating.mean(), c = "black")
@@ -245,4 +256,6 @@ plt.show()
 
 
 
- 
+
+
+
