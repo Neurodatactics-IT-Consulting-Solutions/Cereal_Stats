@@ -215,26 +215,34 @@ pca_regression.rename({0:"PC1",1:"PC2",2:"PC3", 3:"PC4"},axis=1, inplace = True)
 pca_regression["rating"] = cereal["rating"]
 
 y, x = patsy.dmatrices("rating~protein+fat+sodium+fiber+carbo+sugars+potass",cereal) 
-y, x = patsy.dmatrices("rating~PC1+PC2+PC3+PC4",pca_regression) 
+
 
 
 model= sm.OLS(y,x).fit()
 print(model.summary())  #good model with good fit where fiber seems to increase the rating the most while fat decreases, cp.
 
+y, x = patsy.dmatrices("rating~PC1+PC2",pca_regression) 
+model= sm.OLS(y,x).fit()
+print(model.summary()) 
+
+y, x = patsy.dmatrices("rating~PC2",pca_regression) 
+model= sm.OLS(y,x).fit()
+print(model.summary()) 
+
+    
 plt.scatter(x=cereal.sugars, y = cereal.rating) #the more the sugar, the lower the rating
 plt.scatter(x=cereal.fat, y = cereal.rating)  #the more the sugar, the lower the rating
 plt.scatter(x= cereal.cups , y= cereal.calories)
 plt.scatter(x= cereal.fiber , y= cereal.rating)
 plt.scatter(x= cereal.protein , y= cereal.rating)
 
-plt.scatter(x=pca_regression.iloc[:,0], y = pca_regression.rating) 
-    
+plt.scatter(x=pca_regression.iloc[:,1], y = pca_regression.rating) 
+   
+ 
 plt.hist(cereal["rating"]) #somewhat right skewed distribution
 plt.axvline(cereal.rating.mean(), c = "black")
 plt.show()
 
-
-
-
-
-
+c= pca_regression.PC1
+d=pca_regression.PC2
+sns.regplot(x="PC2", y="rating", data=pca_regression, color="green")
